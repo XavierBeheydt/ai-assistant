@@ -1,0 +1,37 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    restart: always
+    gpus: all
+    env_file: .env
+    volumes:
+      - ${OLLAMA_PATH}:/root/.ollama
+    ports:
+      - ${OLLAMA_PORT}:11434
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ${LITELLM_CONFIG}:/app/config.yaml
+    ports:
+      - ${LITELLM_PORT}:4000
+    command: --config /app/config.yaml --detailed_debug
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    restart: always
+    gpus: all
+    env_file: .env
+    depends_on:
+      - ollama
+      - litellm
+    ports:
+      - ${OPEN_WEBUI_PORT}:8080
+    volumes:
+      - open-webui:/app/backend/data
+
+volumes:
+  open-webui:
